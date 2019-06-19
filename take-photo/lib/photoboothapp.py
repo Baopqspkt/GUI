@@ -3,29 +3,23 @@ from __future__ import print_function
 from PIL import Image
 from PIL import ImageTk
 import Tkinter as tki
-from Tkinter import *
 import threading
 import datetime
 import imutils
 import cv2
 import os
 
-
 class PhotoBoothApp:
-	def dataset_adress():
-		c = a.get()
-		c = c.replace('\\','/')
-		return c
-	def __init__(self, vs):
+	def __init__(self, vs, outputPath):
 		# store the video stream object and output path, then initialize
 		# the most recently read frame, thread for reading frames, and
 		# the thread stop event
 		self.vs = vs
-		#self.outputPath = outputPath
+		self.outputPath = outputPath
 		self.frame = None
 		self.thread = None
 		self.stopEvent = None
-		
+
 		# initialize the root window and image panel
 		self.root = tki.Tk()
 		self.panel = None
@@ -36,12 +30,7 @@ class PhotoBoothApp:
 			command=self.takeSnapshot)
 		btn.pack(side="bottom", fill="both", expand="yes", padx=10,
 			pady=10)
-		
-		#creat textbox
-		a = StringVar()
-		lab = tki.Label(self.root,text='Link dataset').pack()
-		tki.Entry(self.root,textvariable=a).pack()
-		#self.outputPath = dataset_adress()
+
 		# start a thread that constantly pools the video sensor for
 		# the most recently read frame
 		self.stopEvent = threading.Event()
@@ -83,7 +72,7 @@ class PhotoBoothApp:
 					self.panel.configure(image=image)
 					self.panel.image = image
 
-		except RuntimeError:
+		except RuntimeError, e:
 			print("[INFO] caught a RuntimeError")
 
 	def takeSnapshot(self):
@@ -91,16 +80,16 @@ class PhotoBoothApp:
 		# output path
 		ts = datetime.datetime.now()
 		filename = "{}.jpg".format(ts.strftime("%Y-%m-%d_%H-%M-%S"))
-		c = self.dataset_adress()
-		p = os.path.sep.join((c, filename))
+		p = os.path.sep.join((self.outputPath, filename))
 
 		# save the file
 		cv2.imwrite(p, self.frame.copy())
 		#print("[INFO] saved {}".format(filename))
+
 	def onClose(self):
 		# set the stop event, cleanup the camera, and allow the rest of
 		# the quit process to continue
-		print("[INFO] closing...")
+		#print("[INFO] closing...")
 		self.stopEvent.set()
 		self.vs.stop()
 		self.root.quit()
